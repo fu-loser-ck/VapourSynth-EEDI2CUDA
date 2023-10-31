@@ -71,10 +71,13 @@ jobs:
       run: cmake --build build --config Release --verbose
 
     - name: Strip
-      run: strip -s libEEDI2CUDA.so
+      run: |
+        ls -hls
+        strip -s libEEDI2CUDA.so
+
       working-directory: build
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
         name: EEDI2CUDA-Linux
-        path: build
+        path: build/libEEDI2CUDA.so
