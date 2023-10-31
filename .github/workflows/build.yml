@@ -65,7 +65,7 @@ jobs:
         echo "LD_LIBRARY_PATH=/usr/local/cuda/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> $GITHUB_ENV
 
     - name: Configure
-      run: cmake -S. -B build -GNinja -DBoost_INCLUDE_DIRS=`pwd` -DCMAKE_BUILD_TYPE=Release
+      run: cmake -S. -B build -DBoost_INCLUDE_DIRS=`pwd` -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       run: cmake --build build --config Release --verbose
