@@ -12,6 +12,7 @@ jobs:
       with:
         path: boost.zip
         key: boost
+
     - name: Checkout Boost
       uses: actions/checkout@v3
       with:
@@ -19,14 +20,17 @@ jobs:
         ref: dcea40897111fb7c4b92b17455e177d6d2bf735c
         submodules: recursive
       if: steps.cache-boost.outputs.cache-hit != 'true'
+
     - name: Build Boost
       run: |
         ./bootstrap.sh
         ./b2 headers
       if: steps.cache-boost.outputs.cache-hit != 'true'
+
     - name: Archive
       run: zip -r9 boost.zip boost
       if: steps.cache-boost.outputs.cache-hit != 'true'
+
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
@@ -41,23 +45,31 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+
     - name: Download Boost
       uses: actions/download-artifact@v3
       with:
         name: dep-boost
+
     - name: Expand Boost
       run:  unzip boost.zip
+
     - name: Setup CUDA
-      uses: Jimver/cuda-toolkit@v0.2.11
-      with:
-        cuda: 12.2.0
-    - name: Configure
       run: |
-        mkdir build
-        cmake -S. -Bbuild -DBoost_INCLUDE_DIRS=`pwd` -DCMAKE_BUILD_TYPE=Release
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i cuda-keyring_1.1-1_all.deb
+        sudo apt-get update
+        sudo apt-get install -y cuda-nvcc-12-2 cuda-cudart-dev-12-2 cuda-nvrtc-dev-12-2
+        echo "PATH=/usr/local/cuda/bin${PATH:+:${PATH}}" >> $GITHUB_ENV
+        echo "CUDA_PATH=/usr/local/cuda" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/usr/local/cuda/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> $GITHUB_ENV
+
+    - name: Configure
+      run: cmake -S. -B build -GNinja -DBoost_INCLUDE_DIRS=`pwd` -DCMAKE_BUILD_TYPE=Release
+
     - name: Build
-      run: make
-      working-directory: build
+      run: cmake --build build --config Release --verbose
+
     - name: Strip
       run: strip -s libEEDI2CUDA.so
       working-directory: build
